@@ -1,0 +1,64 @@
+---
+
+import { INTERNAL_SERVICE_REMINDERS_ENDPOINT } from "astro:env/server";
+
+interface Reminder {
+  title: string;
+  recurrence: string;
+  nextExecution?: string;
+  active?: boolean;
+}
+
+const data: Reminder[] = await fetch(INTERNAL_SERVICE_REMINDERS_ENDPOINT).then(res => res.json());
+
+
+---
+
+<section class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
+        <h3 class="mb-4 text-xl font-semibold text-white">Resultados</h3>
+
+        <div class="flex flex-col pt-5">
+            <div class="overflow-x-auto rounded-lg">
+                <div class="inline-block min-w-full align-middle">
+                    <div class="overflow-hidden shadow sm:rounded-lg">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th scope="col"
+                                        class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                        >Título</th>
+                                    <th scope="col"
+                                        class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                        >Recurrente</th>
+                                    <th scope="col"
+                                        class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                        >Fecha aviso</th>
+                                    <th scope="col"
+                                        class="p-4 text-base font-semibold tracking-wider text-center text-white">Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-gray-800">
+                                {
+                                    data && data.length > 0 ? (
+                                        data.map((reminder, index) => (
+                                <tr class={index % 2 === 0 ? "bg-gray-900" : ""}>
+                                    <td class="p-4 text-base font-normal text-gray-400 rounded-l-lg whitespace-nowrap">{reminder.title}</td>
+                                    <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">{reminder.recurrence}</td>
+                                    <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">{reminder.nextExecution}</td>
+                                    <td class="p-4 text-center font-normal text-gray-400 rounded-r-lg whitespace-nowrap">{reminder.active ? "Sí" : "No"}</td>
+                                </tr>
+                                        ))
+                                    ) 
+                                    : (
+                                        <tr>
+                                            <td colspan="4" class="p-4 text-center font-normal text-gray-400">No hay recordatorios.</td>
+                                        </tr>
+                                    )
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
