@@ -56,4 +56,14 @@ const { title } = Astro.props;
 		padding: 0 1rem;
 		margin: 0 auto;
 	}
+
+	input, select, textarea, button {
+		@apply outline-none focus:outline-none
+	}
+
+	input[type="datetime-local"],
+    input[type="date"],
+    input[type="time"] {
+        color-scheme: dark;
+    }
 </style>

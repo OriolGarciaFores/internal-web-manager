@@ -1,0 +1,154 @@
+---
+import BaseWeb from "../layouts/BaseWeb.astro";
+import { INTERNAL_SERVICE_REMINDERS_ENDPOINT, OWNER_DISCORD_ID } from "astro:env/server";
+import { parse, format } from "@formkit/tempo";
+
+let formValues = {
+  title: "",
+  nextExecution: "",
+  recurrence: "NONE",
+  message: "",
+};
+
+let errorMessage = "";
+
+if (Astro.request.method === "POST") {
+  try {
+    const data = await Astro.request.formData();
+
+    formValues = {
+      title: data.get("title")?.toString() || "",
+      nextExecution: data.get("nextExecution")?.toString() || "",
+      recurrence: data.get("recurrence")?.toString() || "NONE",
+      message: data.get("message")?.toString() || ""
+    };
+
+    const dateObj = parse(formValues.nextExecution, "YYYY-MM-DDTHH:mm");
+    
+    const payload = {
+        title: data.get("title"),
+        nextExecution: format(dateObj, "DD-MM-YYYY HH:mm"),
+        recurrence: data.get("recurrence"),
+        message: data.get("message"),
+        ownerDiscordId: OWNER_DISCORD_ID,
+        active: true
+    }
+
+    const response = await fetch(INTERNAL_SERVICE_REMINDERS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+        return Astro.redirect("/");
+    } else {
+        errorMessage = "Error al guardar el recordatorio."
+        console.error(response)
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+  }
+}
+
+---
+
+<BaseWeb title="Internal manager">
+    <section class="my-12 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
+
+        {errorMessage && (
+            <div class="mb-4 p-3 bg-red-900/50 border border-red-500 text-red-200 rounded-lg text-sm">
+                {errorMessage}
+            </div>
+        )}
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="my-2 flex justify-between items-center">
+                <h3 class="mb-4 text-xl font-semibold text-white">
+                Crear - Recordatorio
+                </h3>
+                <div class="flex gap-2">
+                    <button type="submit" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
+                        Aceptar
+                    </button>
+                    <a href="/" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="title"
+                        class="block mb-2 text-sm font-medium text-gray-900 text-white">
+                        Título
+                        </label>
+                    <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                        placeholder="Título"
+                        value={formValues.title}
+                        required
+                    />
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="nextExecution"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Fecha y Hora
+                    </label>
+                    <input id="nextExecution"
+                           type="datetime-local"
+                           name="nextExecution"
+                           value={formValues.nextExecution}
+                           required
+                           class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                    />
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="recurrence"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Frecuencia
+                    </label>
+                    <select id="recurrence"
+                            name="recurrence"
+                            required
+                            class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                            >
+                        <option value="NONE" selected={formValues.recurrence === "NONE"}>Sin repetición</option>
+                        <option value="DAILY" selected={formValues.recurrence === "DAILY"}>Diario</option>
+                        <option value="WEEKLY" selected={formValues.recurrence === "WEEKLY"}>Semanal</option>
+                        <option value="MONTHLY" selected={formValues.recurrence === "MONTHLY"}>Mensual</option>
+                    </select>
+                </div>
+
+                <div class="col-span-6 sm:col-span-6">
+                    <label
+                        for="message"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Mensaje
+                    </label>
+                    <textarea id="message"
+                              name="message"
+                              class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                              required
+                              maxlength="255"
+                              >{formValues.message}</textarea>
+                </div>
+            </div>
+        </form>
+    </section>
+</BaseWeb>

@@ -1,5 +1,4 @@
 ---
-
 import { INTERNAL_SERVICE_REMINDERS_ENDPOINT } from "astro:env/server";
 
 interface Reminder {
@@ -10,8 +9,6 @@ interface Reminder {
 }
 
 const data: Reminder[] = await fetch(INTERNAL_SERVICE_REMINDERS_ENDPOINT).then(res => res.json());
-
-
 ---
 
 <section class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">

@@ -3,9 +3,6 @@ import TableReminders from "../components/TableReminders.astro";
 import BaseWeb from "../layouts/BaseWeb.astro";
 
 export const prerender = true;
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <BaseWeb title="Internal manager">
@@ -16,9 +13,9 @@ export const prerender = true;
                 Recordatorios
                 </h3>
                 <div class="flex gap-2">
-                    <button type="submit" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
+                    <a href="/crear" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
                         Crear
-                    </button>
+                    </a>
                     <button type="submit" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
                         Buscar
                     </button>
@@ -46,6 +43,11 @@ export const prerender = true;
         </form>
     </section>
     
-    <TableReminders server:defer/>
+    <TableReminders server:defer>
+        <section slot="fallback" class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
+            <h3 class="mb-4 text-xl font-semibold text-white">Resultados</h3>
+            <span slot="fallback" class="text-white">Cargando datos...</span>
+        </section>
+    </TableReminders>
 
 </BaseWeb>

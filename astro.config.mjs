@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
+  output: 'server',
   adapter: node({
     mode: 'standalone'
   }),
@@ -15,6 +16,10 @@ export default defineConfig({
   env: {
     schema: {
       INTERNAL_SERVICE_REMINDERS_ENDPOINT: envField.string({
+        context: 'server', 
+        access: 'public'
+      }),
+      OWNER_DISCORD_ID: envField.string({
         context: 'server', 
         access: 'public'
       })
