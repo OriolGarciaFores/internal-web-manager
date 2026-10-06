@@ -17,11 +17,11 @@ export default defineConfig({
     schema: {
       INTERNAL_SERVICE_REMINDERS_ENDPOINT: envField.string({
         context: 'server', 
-        access: 'public'
+        access: 'secret'
       }),
       OWNER_DISCORD_ID: envField.string({
         context: 'server', 
-        access: 'public'
+        access: 'secret'
       })
     }
   }

@@ -1,3 +1,11 @@
+packages:
+  - '.'
+
+onlyBuiltDependencies:
+  - esbuild
+  - '@rolldown/binding-linux-x64-musl'
+  - '@img/sharp-libvips-linuxmusl-x64'
+
 allowBuilds:
   esbuild: true
   sharp: true
