@@ -1,6 +1,6 @@
 # --- ETAPA 1: Construcción (Build) ---
 FROM node:24-alpine AS builder
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./

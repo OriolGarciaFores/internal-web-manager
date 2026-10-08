@@ -1,0 +1,20 @@
+name: internal-web-manager-local
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: internal-web-manager-local
+    container_name: internal-web-manager-local
+    restart: "no"
+    ports:
+      - "8081:8081" # Puerto mapeado para ver fuera de docker
+    env_file:
+      - .env.des
+    networks:
+      - tebra-network
+
+networks:
+  tebra-network:
+    external: true
