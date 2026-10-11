@@ -3,6 +3,7 @@ import { INTERNAL_SERVICE_REMINDERS_ENDPOINT } from "astro:env/server";
 import Alert from "./Alert.astro";
 
 interface Reminder {
+    id: number;
     title: string;
     recurrence: string;
     nextExecution?: string;
@@ -11,18 +12,20 @@ interface Reminder {
 
 let messageError = "";
 let data: Reminder[] = [];
-let typeMessage: "error" | "info" | "warning" | "success" | undefined = undefined;
+let typeMessage: "error" | "info" | "warning" | "success" | undefined =
+    undefined;
 
 interface Props {
     title?: string;
     active?: string;
 }
 
-const { title = '', active = '' } = Astro.props;
+const { title = "", active = "" } = Astro.props;
 
 const uriReminders = new URL(INTERNAL_SERVICE_REMINDERS_ENDPOINT);
-if (title) uriReminders.searchParams.append('title', title);
-if (active && active !== 'all') uriReminders.searchParams.append('active', active);
+if (title) uriReminders.searchParams.append("title", title);
+if (active && active !== "all")
+    uriReminders.searchParams.append("active", active);
 
 try {
     const response = await fetch(uriReminders.toString());
@@ -73,6 +76,7 @@ try {
                                     class="p-4 text-base font-semibold tracking-wider text-center text-white"
                                     >Activo</th
                                 >
+                                <th scope="col" class=""></th>
                             </tr>
                         </thead>
                         <tbody class="bg-gray-800">
@@ -95,8 +99,36 @@ try {
                                             <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">
                                                 {reminder.nextExecution}
                                             </td>
-                                            <td class="p-4 text-center font-normal text-gray-400 rounded-r-lg whitespace-nowrap">
+                                            <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">
                                                 {reminder.active ? "Sí" : "No"}
+                                            </td>
+                                            <td class="text-center font-normal text-gray-400 rounded-r-lg whitespace-nowrap">
+                                                <a
+                                                    href="/"
+                                                    type="button"
+                                                    class="m-1 inline-flex items-center justify-center focus:ring-4 shadow-xs rounded-base w-10 h-10 focus:outline-none bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 rounded-lg"
+                                                >
+                                                    <img
+                                                        src="/edit.svg"
+                                                        alt="boton editar"
+                                                        aria-hidden="true"
+                                                        width="24"
+                                                        height="24"
+                                                    />
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    data-id={reminder.id}
+                                                    class="btn-delete m-1 inline-flex items-center justify-center focus:ring-4 shadow-xs rounded-base w-10 h-10 focus:outline-none bg-red-600 hover:bg-red-700 focus:ring-red-800 focus:ring-4 rounded-lg"
+                                                >
+                                                    <img
+                                                        src="/delete.svg"
+                                                        alt="boton eliminar"
+                                                        aria-hidden="true"
+                                                        width="24"
+                                                        height="24"
+                                                    />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -118,3 +150,28 @@ try {
         </div>
     </div>
 </section>
+
+<script>
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', async () => {
+            const id = button.getAttribute('data-id');
+            if (!confirm('¿Estás seguro de que deseas eliminar este recordatorio?')) return;
+
+            try {
+                // Llamamos a nuestro propio endpoint interno de Astro
+                const response = await fetch(`/api/reminders/${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('No se pudo eliminar el recordatorio.');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Ocurrió un error al intentar procesar la solicitud.');
+            }
+        });
+    });
+</script>
