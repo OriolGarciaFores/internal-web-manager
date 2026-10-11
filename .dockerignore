@@ -1,0 +1,20 @@
+# Dependencias y entornos locales
+node_modules
+.DS_Store
+.env
+.env.*
+.vscode
+.idea
+
+# Directorios de compilación y caché de Astro
+dist
+.astro
+
+# Control de versiones
+.git
+.gitignore
+
+# Documentación y otros archivos innecesarios para producción
+README.md
+Dockerfile
+docker-compose.yml
