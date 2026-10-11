@@ -1,0 +1,36 @@
+---
+interface Props {
+    type?: "error" | "info" | "success" | "warning";
+    message: string;
+}
+
+const { type, message } = Astro.props;
+
+const styles = {
+    error: {
+        container: "text-red-300 bg-red-900/50 border-red-800",
+    },
+    info: {
+        container: "text-blue-300 bg-blue-900/50 border-blue-800",
+    },
+    warning: {
+        container: "text-yellow-300 bg-yellow-900/50 border-yellow-800",
+    },
+    success: {
+        container: "text-green-300 bg-green-900/50 border-green-800",
+    },
+};
+
+const currentStyle = type ? styles[type] : null;
+---
+
+{
+    type && currentStyle && (
+        <div
+            class={`mb-4 p-4 text-sm rounded-lg border ${currentStyle.container}`}
+            role="alert"
+        >
+            {message}
+        </div>
+    )
+}

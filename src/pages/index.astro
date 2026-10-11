@@ -2,12 +2,23 @@
 import TableReminders from "../components/TableReminders.astro";
 import BaseWeb from "../layouts/BaseWeb.astro";
 
-export const prerender = true;
+const title = Astro.url.searchParams.get('title') || '';
+const active = Astro.url.searchParams.get('active') || 'true';
+
+let filters = {
+  title: "",
+  active: "true"
+};
+
+filters = {
+    title: title || "",
+    active: active || "true"
+}
 ---
 
 <BaseWeb title="Internal manager">
     <section class="my-12 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
-        <form action="#">
+        <form>
             <div class="my-2 flex justify-between items-center">
                 <h3 class="mb-4 text-xl font-semibold text-white">
                 Recordatorios
@@ -34,16 +45,33 @@ export const prerender = true;
                         type="text"
                         name="title"
                         id="title"
+                        value={filters.title}
                         class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
                         placeholder="Título"
                     />
                 </div>
-                
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="active"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Activo
+                    </label>
+                    <select id="active"
+                            name="active"
+                            class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                            >
+                        <option value="all" selected={filters.active === "all"}></option>
+                        <option value="true" selected={filters.active === "true"}>Si</option>
+                        <option value="false" selected={filters.active === "false"}>No</option>
+                    </select>
+                </div>
             </div>
         </form>
     </section>
     
-    <TableReminders server:defer>
+    <TableReminders server:defer title={title} active={active}>
         <section slot="fallback" class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
             <h3 class="mb-4 text-xl font-semibold text-white">Resultados</h3>
             <span slot="fallback" class="text-white">Cargando datos...</span>
