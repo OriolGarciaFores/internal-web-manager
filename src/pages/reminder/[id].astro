@@ -1,0 +1,238 @@
+---
+import BaseWeb from "../../layouts/BaseWeb.astro";
+import Alert from "../../components/Alert.astro";
+import { INTERNAL_SERVICE_REMINDERS_ENDPOINT } from "astro:env/server";
+
+const { id } = Astro.params;
+
+interface Reminder {
+    id: number;
+    title: string;
+    recurrence: string;
+    nextExecution?: string;
+    active?: boolean;
+    message: string;
+}
+
+let errorMessage = "";
+let reminder: Reminder | null = null;
+let typeMessage: "error" | "info" | "warning" | "success" | undefined =
+    undefined;
+
+try {
+    const response = await fetch(
+        `${INTERNAL_SERVICE_REMINDERS_ENDPOINT}/${id}`,
+    );
+
+    if (response.ok) {
+        reminder = await response.json();
+    } else {
+        errorMessage = `Error HTTP ${response.status} al consultar reminders: ${response.statusText}.`;
+        typeMessage = "error";
+    }
+} catch (error) {
+    errorMessage = "Error en la conexión con el servicio interno.";
+    console.error(error);
+    typeMessage = "error";
+}
+---
+
+<BaseWeb title="Internal manager">
+    <section
+        class="my-12 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800"
+    >
+        <Alert type={typeMessage} message={errorMessage} />
+
+        <div
+            id="error-form-updating"
+            class="hidden"
+            role="alert"
+        >
+        </div>
+
+        <form
+            id="update-form"
+            method="post"
+            data-id={reminder?.id}
+            enctype="multipart/form-data"
+        >
+            <div class="my-2 flex justify-between items-center">
+                <h3 class="mb-4 text-xl font-semibold text-white">
+                    Detalle - Recordatorio
+                </h3>
+                <div class="flex gap-2">
+                    <button
+                        type="submit"
+                        class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg"
+                    >
+                        Aceptar
+                    </button>
+                    <a
+                        href="/"
+                        class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg"
+                    >
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="title"
+                        class="block mb-2 text-sm font-medium text-gray-900 text-white"
+                    >
+                        Título
+                    </label>
+                    <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                        placeholder="Título"
+                        value={reminder?.title}
+                        required
+                    />
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="nextExecution"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Fecha y Hora
+                    </label>
+                    <input
+                        id="nextExecution"
+                        type="datetime-local"
+                        name="nextExecution"
+                        value={reminder?.nextExecution}
+                        required
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                    />
+                </div>
+
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="recurrence"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Frecuencia
+                    </label>
+                    <select
+                        id="recurrence"
+                        name="recurrence"
+                        required
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                    >
+                        <option
+                            value="NONE"
+                            selected={reminder?.recurrence === "NONE"}
+                            >Sin repetición</option
+                        >
+                        <option
+                            value="DAILY"
+                            selected={reminder?.recurrence === "DAILY"}
+                            >Diario</option
+                        >
+                        <option
+                            value="WEEKLY"
+                            selected={reminder?.recurrence === "WEEKLY"}
+                            >Semanal</option
+                        >
+                        <option
+                            value="MONTHLY"
+                            selected={reminder?.recurrence === "MONTHLY"}
+                            >Mensual</option
+                        >
+                    </select>
+                </div>
+
+                <div
+                    class="col-span-6 sm:col-span-3 flex flex-col justify-center"
+                >
+                    <span
+                        class="hidden sm:block block mb-2 text-sm font-medium opacity-0 select-none"
+                        >Espacio</span
+                    >
+                    <div class="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="active"
+                            name="active"
+                            checked={reminder?.active}
+                            class="h-4 w-4 text-white border-gray-300 rounded"
+                        />
+                        <label
+                            for="active"
+                            class="ml-2 block text-sm text-white">Activo</label
+                        >
+                    </div>
+                </div>
+
+                <div class="col-span-6 sm:col-span-6">
+                    <label
+                        for="message"
+                        class="block mb-2 text-sm font-medium text-white"
+                    >
+                        Mensaje
+                    </label>
+                    <textarea
+                        id="message"
+                        name="message"
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                        required
+                        maxlength="255">{reminder?.message}</textarea
+                    >
+                </div>
+            </div>
+        </form>
+    </section>
+</BaseWeb>
+
+<script>
+    const form = document.getElementById("update-form") as HTMLFormElement;
+    const alertBox = document.getElementById("error-form-updating");
+
+    function showError(msg: string) {
+        if (!alertBox) return;
+        alertBox.textContent = msg;
+        alertBox.className = "mb-4 p-4 text-sm rounded-lg border text-red-300 bg-red-900/50 border-red-800";
+    }
+
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = form.getAttribute("data-id");
+            const formData = new FormData(form);
+
+            const updatedData = {
+                title: formData.get("title"),
+                recurrence: formData.get("recurrence"),
+                nextExecution: formData.get("nextExecution"),
+                active: formData.get("active") === "on",
+                message: formData.get("message"),
+            };
+
+            try {
+                // Llamada PUT a nuestro endpoint intermedio de Astro
+                const response = await fetch(`/api/reminders/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedData),
+                });
+
+                if (response.ok) {
+                    window.location.href = "/";
+                } else {
+                    showError("Error al actualizar el recordatorio.");
+                }
+            } catch (error) {
+                console.error("Error de red:", error);
+                showError("Error de conexión al intentar actualizar.");
+            }
+        });
+    }
+</script>
