@@ -16,5 +16,5 @@ services:
       - tebra-network-pro
 
 networks:
-  tebra-network:
+  tebra-network-pro:
     external: true
