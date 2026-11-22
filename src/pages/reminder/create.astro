@@ -43,7 +43,7 @@ if (Astro.request.method === "POST") {
     });
 
     if (response.ok) {
-        return Astro.redirect("/");
+        return Astro.redirect("/reminder");
     } else {
         errorMessage = "Error al guardar el recordatorio."
         console.error(response)
@@ -75,7 +75,7 @@ if (Astro.request.method === "POST") {
                     <button type="submit" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
                         Aceptar
                     </button>
-                    <a href="/" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
+                    <a href="/reminder" class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg">
                         Cancelar
                     </a>
                 </div>
