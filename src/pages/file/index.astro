@@ -1,0 +1,183 @@
+---
+import TableFiles from "../../components/TableFiles.astro";
+import BaseWeb from "../../layouts/BaseWeb.astro";
+
+const title = Astro.url.searchParams.get("title") || "";
+const type = Astro.url.searchParams.get("type") || "";
+
+let filters = {
+    title: "",
+    type: "",
+};
+
+filters = {
+    title: title || "",
+    type: type || "",
+};
+---
+
+<BaseWeb title="Internal manager">
+    <section class="my-12 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
+        <form>
+            <div class="my-2 flex justify-between items-center">
+                <h3 class="mb-4 text-xl font-semibold text-white">Archivos</h3>
+                <div class="flex gap-2">
+                    <button
+                        id="toggle-modal-btn"
+                        type="button"
+                        class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg"
+                    >
+                        Adjuntar
+                    </button>
+                    <button
+                        type="submit"
+                        class="text-white font-bold bg-blue-600 hover:bg-blue-700 focus:ring-blue-800 focus:ring-4 py-2 px-4 rounded-lg"
+                    >
+                        Buscar
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-6 gap-6">
+                <div class="col-span-6 sm:col-span-3">
+                    <label
+                        for="title"
+                        class="block mb-2 text-sm font-medium text-gray-900 text-white"
+                    >
+                        Título
+                    </label>
+                    <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        value={filters.title}
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                        placeholder="Título"
+                    />
+                </div>
+
+                <div class="col-span-6 sm:col-span-1">
+                    <label
+                        for="type"
+                        class="block mb-2 text-sm font-medium text-gray-900 text-white"
+                    >
+                        Tipo
+                    </label>
+                    <input
+                        type="text"
+                        name="type"
+                        id="type"
+                        value={filters.type}
+                        class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full p-2.5 bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white"
+                        placeholder="Tipo"
+                    />
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <TableFiles server:defer title={title} type={type}>
+        <section
+            slot="fallback"
+            class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800"
+        >
+            <h3 class="mb-4 text-xl font-semibold text-white">Resultados</h3>
+            <span slot="fallback" class="text-white">
+                Cargando datos...
+            </span>
+        </section>
+    </TableFiles>
+
+    <dialog
+        id="upload-modal"
+        class="m-auto w-full max-w-2xl p-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800 backdrop:bg-gray-950/75 backdrop:backdrop-blur-xs"
+    >
+        <div class="flex items-center justify-between border-b border-gray-700 pb-3 mb-4">
+            <h3 class="text-lg font-semibold text-white">Adjuntar archivo</h3>
+            <button
+                id="close-modal-btn"
+                type="button"
+                aria-label="Cerrar modal"
+                class="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg p-1.5 cursor-pointer leading-none"
+            >
+                ✕
+            </button>
+        </div>
+        <form
+            id="upload-form"
+            class="flex flex-col sm:flex-row sm:items-end gap-4"
+        >
+            <div class="flex-1">
+                <input
+                    type="file"
+                    id="file-input"
+                    name="file"
+                    required
+                    class="shadow-sm border text-gray-900 sm:text-sm rounded-lg block w-full bg-gray-700 border-gray-600 focus:border-blue-600 placeholder-gray-400 text-white file:mr-8 file:bg-blue-700 file:py-2.5 file:px-4 file:border-0 file:text-sm file:font-semibold"
+
+                />
+            </div>
+            <button
+                type="submit"
+                class="text-white font-bold bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-800 py-2.5 px-4 rounded-lg"
+            >
+                Subir archivo
+            </button>
+        </form>
+        <p id="upload-status" class="mt-2 text-sm text-gray-300"></p>
+    </dialog>
+</BaseWeb>
+
+<script>
+    const toggleBtn = document.getElementById("toggle-modal-btn");
+    const modal = document.getElementById(
+        "upload-modal",
+    ) as HTMLDialogElement | null;
+
+    toggleBtn?.addEventListener("click", () => {
+        modal?.showModal();
+    });
+
+    const closeModalBtn = document.getElementById("close-modal-btn");
+
+    closeModalBtn?.addEventListener("click", () => {
+        modal?.close();
+    });
+
+    const form = document.getElementById(
+        "upload-form",
+    ) as HTMLFormElement | null;
+    const fileInput = document.getElementById(
+        "file-input",
+    ) as HTMLInputElement | null;
+    const statusText = document.getElementById("upload-status");
+
+    form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!fileInput?.files?.length) return;
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        if (statusText) statusText.textContent = "Subiendo archivo...";
+
+        try {
+            const response = await fetch("/api/files/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP ${response.status}`);
+            }
+
+            if (statusText)
+                statusText.textContent = "Archivo subido correctamente.";
+            window.location.reload();
+        } catch (error) {
+            if (statusText)
+                statusText.textContent = "No se pudo subir el archivo.";
+            console.error(error);
+        }
+    });
+</script>

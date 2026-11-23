@@ -1,0 +1,176 @@
+---
+import { INTERNAL_SERVICE_FILES_ENDPOINT } from "astro:env/server";
+import Alert from "./Alert.astro";
+
+interface File {
+    id: number;
+    title: string;
+    type: string;
+    createDate?: string;
+    lastUpdate?: string;
+}
+
+let messageError = "";
+let data: File[] = [];
+let typeMessage: "error" | "info" | "warning" | "success" | undefined =
+    undefined;
+
+interface Props {
+    title?: string;
+    type?: string;
+}
+
+const { title = "", type = "" } = Astro.props;
+
+const uriFiles = new URL(INTERNAL_SERVICE_FILES_ENDPOINT);
+if (title) uriFiles.searchParams.append("title", title);
+if (type) uriFiles.searchParams.append("type", type);
+
+try {
+    const response = await fetch(uriFiles.toString());
+
+    if (response.ok) {
+        data = await response.json();
+    } else {
+        messageError = `Error HTTP ${response.status} al consultar files: ${response.statusText}.`;
+        typeMessage = "error";
+    }
+} catch (error) {
+    messageError = "Error en la conexión con el servicio interno.";
+    console.error(error);
+    typeMessage = "error";
+}
+---
+
+<section class="my-2 p-4 mb-4 border rounded-lg shadow-sm border-gray-700 sm:p-6 bg-gray-800">
+    <Alert type={typeMessage} message={messageError} />
+    <h3 class="mb-4 text-xl font-semibold text-white">Resultados</h3>
+
+    <div class="flex flex-col pt-5">
+        <div class="overflow-x-auto rounded-lg">
+            <div class="inline-block min-w-full align-middle">
+                <div class="overflow-hidden shadow sm:rounded-lg">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th
+                                    scope="col"
+                                    class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                >
+                                    Título
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                >
+                                    Tipo
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                >
+                                    Fecha creación
+                                </th>
+                                <th
+                                    scope="col"
+                                    class="p-4 text-base font-semibold tracking-wider text-center text-white"
+                                >
+                                    Fecha última modificación
+                                </th>
+                                <th scope="col" class=""></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-gray-800">
+                            {data && data.length > 0 ? (
+                                data.map((file, index) => (
+                                    <tr
+                                        class={
+                                            index % 2 === 0 ? "bg-gray-900" : ""
+                                        }
+                                    >
+                                        <td class="p-4 text-base font-normal text-gray-400 rounded-l-lg whitespace-nowrap">
+                                            {file.title}
+                                        </td>
+                                        <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">
+                                            {file.type}
+                                        </td>
+                                        <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">
+                                            {file.createDate}
+                                        </td>
+                                        <td class="p-4 text-center font-normal text-gray-400 whitespace-nowrap">
+                                            {file.lastUpdate}
+                                        </td>
+                                        <td class="text-center font-normal text-gray-400 rounded-r-lg whitespace-nowrap">
+                                            <a
+                                                href={`/api/files/${file.id}`}
+                                                download
+                                                aria-label="Descargar archivo"
+                                                class="m-1 inline-flex items-center justify-center focus:ring-4 focus:outline-none bg-green-600 hover:bg-green-700 focus:ring-green-800 rounded-lg w-10 h-10"
+                                            >
+                                                <img
+                                                    src="/download.svg"
+                                                    alt="boton descargar archivo"
+                                                    aria-hidden="true"
+                                                    width="24"
+                                                    height="24"
+                                                />
+                                            </a>
+                                            <button
+                                                type="button"
+                                                data-id={file.id}
+                                                class="btn-delete m-1 inline-flex items-center justify-center focus:ring-4 shadow-xs rounded-base w-10 h-10 focus:outline-none bg-red-600 hover:bg-red-700 focus:ring-red-800 focus:ring-4 rounded-lg"
+                                            >
+                                                <img
+                                                    src="/delete.svg"
+                                                    alt="boton eliminar"
+                                                    aria-hidden="true"
+                                                    width="24"
+                                                    height="24"
+                                                />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td
+                                        colspan="4"
+                                        class="p-4 text-center font-normal text-gray-400"
+                                    >
+                                        No hay archivos.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.querySelectorAll(".btn-delete").forEach((button) => {
+        button.addEventListener("click", async () => {
+            const id = button.getAttribute("data-id");
+            if (!confirm("¿Estás seguro de que deseas eliminar este archivo?"))
+                return;
+
+            try {
+                // Llamamos a nuestro propio endpoint interno de Astro
+                const response = await fetch(`/api/files/${id}`, {
+                    method: "DELETE",
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("No se pudo eliminar el archivo.");
+                }
+            } catch (error) {
+                console.error("Error de red:", error);
+                alert("Ocurrió un error al intentar procesar la solicitud.");
+            }
+        });
+    });
+</script>

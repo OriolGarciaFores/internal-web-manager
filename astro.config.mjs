@@ -19,6 +19,10 @@ export default defineConfig({
         context: 'server', 
         access: 'secret'
       }),
+      INTERNAL_SERVICE_FILES_ENDPOINT: envField.string({
+        context: 'server', 
+        access: 'secret'
+      }),
       OWNER_DISCORD_ID: envField.string({
         context: 'server', 
         access: 'secret'
