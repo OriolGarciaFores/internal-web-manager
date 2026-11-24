@@ -1,7 +1,7 @@
 {
   "name": "internal-web-manager",
   "type": "module",
-  "version": "0.2.0-snapshot",
+  "version": "0.3.0-snapshot",
   "engines": {
     "node": ">=22.12.0"
   },
