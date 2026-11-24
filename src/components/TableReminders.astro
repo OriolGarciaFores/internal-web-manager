@@ -1,6 +1,7 @@
 ---
 import { INTERNAL_SERVICE_REMINDERS_ENDPOINT } from "astro:env/server";
 import Alert from "./Alert.astro";
+import { parse, format } from "@formkit/tempo";
 
 interface Reminder {
     id: number;
@@ -22,6 +23,18 @@ interface Props {
 
 const { title = "", active = "" } = Astro.props;
 
+const formatDateTime = (dateStr?: string | null): string | undefined => {
+    if (!dateStr) return undefined;
+
+    const parsed = parse(dateStr);
+
+    if (!Number.isNaN(parsed.getTime())) {
+        return format(parsed, "DD-MM-YYYY HH:mm");
+    }
+
+    return dateStr;
+};
+
 const uriReminders = new URL(INTERNAL_SERVICE_REMINDERS_ENDPOINT);
 if (title) uriReminders.searchParams.append("title", title);
 if (active && active !== "all")
@@ -32,6 +45,12 @@ try {
 
     if (response.ok) {
         data = await response.json();
+
+        if (data && data.length > 0) {
+            data.forEach(file => {
+                file.nextExecution = formatDateTime(file.nextExecution);
+            });
+        }
     } else {
         messageError = `Error HTTP ${response.status} al consultar reminders: ${response.statusText}.`;
         typeMessage = "error";

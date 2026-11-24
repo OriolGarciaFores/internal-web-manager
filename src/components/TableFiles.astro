@@ -1,6 +1,7 @@
 ---
 import { INTERNAL_SERVICE_FILES_ENDPOINT } from "astro:env/server";
 import Alert from "./Alert.astro";
+import { parse, format } from "@formkit/tempo";
 
 interface File {
     id: number;
@@ -22,6 +23,18 @@ interface Props {
 
 const { title = "", type = "" } = Astro.props;
 
+const formatDateTime = (dateStr?: string | null): string | undefined => {
+    if (!dateStr) return undefined;
+
+    const parsed = parse(dateStr);
+
+    if (!Number.isNaN(parsed.getTime())) {
+        return format(parsed, "DD-MM-YYYY HH:mm");
+    }
+
+    return dateStr;
+};
+
 const uriFiles = new URL(INTERNAL_SERVICE_FILES_ENDPOINT);
 if (title) uriFiles.searchParams.append("title", title);
 if (type) uriFiles.searchParams.append("type", type);
@@ -31,6 +44,13 @@ try {
 
     if (response.ok) {
         data = await response.json();
+
+        if (data && data.length > 0) {
+            data.forEach(file => {
+                file.createDate = formatDateTime(file.createDate);
+                file.lastUpdate = formatDateTime(file.lastUpdate);
+            });
+        }
     } else {
         messageError = `Error HTTP ${response.status} al consultar files: ${response.statusText}.`;
         typeMessage = "error";
