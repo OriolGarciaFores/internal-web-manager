@@ -11,7 +11,7 @@ services:
     ports:
       - "9081:8081" # Puerto mapeado para ver fuera de docker
     env_file:
-      - .env
+      - .env.production
     networks:
       - tebra-network-pro
 
